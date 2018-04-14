@@ -1,4 +1,4 @@
-import requests, sys, re, json
+import requests, sys, re, json, progressbar
 from bs4 import BeautifulSoup
 
 def get_all_product_url(region, kind, index):
@@ -80,27 +80,11 @@ products = dict((region, []) for region in regions)
 for region in regions:
 	for kind in kinds:
 		max_result = get_max_result(region, kind)
-		for i in range(max_result // n_product_page):
-			prod_urls = get_all_product_url(region, kind, i * n_product_page)
-			for j in range(n_product_page):
-				products[region].append(get_product_info(prod_urls[j]))
-			sys.stdout.write("{}/{} Products Collected for Region {}, Kind {}\r".format((i + 1) * n_product_page, max_result, region, kinds_name[kinds.index(kind)]))
-			sys.stdout.flush()
-			
+		print("Region: {}, Kind: {}".format(region, kinds_name[kinds.index(kind)]))
+		with progressbar.ProgressBar(max_value = max_result) as bar:
+			for i in range(max_result // n_product_page):
+				prod_urls = get_all_product_url(region, kind, i * n_product_page)
+				for j in range(n_product_page):
+					products[region].append(get_product_info(prod_urls[j]))
+					bar.update(j + 1 + i * n_product_page)
 		print (region, kind)
-
-
-
-
-
-
-
-# print (sys.getdefaultencoding())
-'''
-f = open("c.txt", "wb")
-
-f.write(soup.prettify().encode("utf-8"))
-
-f.close()
-
-'''
