@@ -17,7 +17,7 @@ if rank == 0:
 else:
     send_data = None
 
-i = comm.scatter(send_data, root=0)
+i = comm.scatter(send_data, root=0) + 1 # mac os should add 1
 
 print("process {} start download {} class images ...".format(rank, recv_data))
 
