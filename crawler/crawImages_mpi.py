@@ -12,7 +12,7 @@ size = comm.Get_size()
 
 recv_data = None
 if rank == 0:
-    send_data = range(10)
+    send_data = range(32)
     print("process {} scatter data {} to other processes".format(rank, send_data))
 else:
     send_data = None
