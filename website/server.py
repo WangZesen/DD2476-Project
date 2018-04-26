@@ -49,9 +49,9 @@ class hello:
 			price_sum = 0.
 			
 			for i in range(len(metadata["hits"]["hits"])):
-				max_price = max(max_price, metadata["hits"]["hits"][i]["_source"]["price"])
-				min_price = min(min_price, metadata["hits"]["hits"][i]["_source"]["price"])
 				if metadata["hits"]["hits"][i]["_source"]["price"] != -1:
+					max_price = max(max_price, metadata["hits"]["hits"][i]["_source"]["price"])
+					min_price = min(min_price, metadata["hits"]["hits"][i]["_source"]["price"])
 					valid_count += 1
 					price_sum += metadata["hits"]["hits"][i]["_source"]["price"]
 			print (max_price)

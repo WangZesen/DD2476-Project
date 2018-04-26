@@ -16,6 +16,8 @@ kinds_name = ["antiques", "appliances", "arts+crafts", "atvs/utvs/snow", "auto p
 
 index_count = 0
 
+print (files)
+
 for i in range(len(files)):
 	f = open("data/" + files[i], "r")
 	metadata = json.loads(f.readline())
