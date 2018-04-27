@@ -3,10 +3,14 @@ $def with (key, content, price_stat, table_content)
 <!DOCTYPE html>
 <head>
 	<title>Search Engine Project</title>
-	<link rel="stylesheet" type="text/css" href="static/index_style1.css">
+	<link rel="stylesheet" type="text/css" href="static/index_style.css">
 	<link rel="stylesheet" type="text/css" href="static/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="static/nouislider.css">	
 	<script src="static/jquery-3.3.1.min.js"></script>
 	<script src="static/Chart.js"></script>
+	<script src="static/bootstrap.js"></script>
+	<script src="static/nouislider.js"></script>
+	<script src="static/wNumb.js"></script>
 </head>
 
 <body>
@@ -25,6 +29,8 @@ $def with (key, content, price_stat, table_content)
 	</div>
 	<br>
 	
+	
+	
 	$if 'max' in price_stat:
 		<ul>
 			<li>Max: $price_stat['max']</li>
@@ -33,16 +39,45 @@ $def with (key, content, price_stat, table_content)
 		</ul>
 	$else:
 		<p>Nothing Found</p>
+		$pass
+
+	<div id="slider" style="margin:auto;width:50vh"></div>
 	
-	<div class="chart-container" style="position: relative; height:40vh; width:30vw">
+	$if 'max' in price_stat:
+		<script>
+			var slider = document.getElementById('slider');
+
+			noUiSlider.create(slider, {
+				start: [ $:price_stat['min'] , $:price_stat['max'] ],
+				connect: true,
+				tooltips: [wNumb({decimals:0}), wNumb({decimals:0})],
+				range: {
+					"min": $:price_stat['min'] ,
+					"max": $:price_stat['max']
+				},
+				step: 1.0
+			});
+		
+		</script>
+	$else:
+		$pass
+		
+	<div class="chart-container" style="margin:auto; position:relative; height:80vh; width:80vw">
 		<canvas id="myChart"></canvas>
 	</div>
 	
 	$:content
+	
+	
+	
 	<script>
 		var jq = jQuery.noConflict();
 		jq(document).ready(function(){
+
+			
 			jq("#search").click(function() {
+				
+				
 				var newForm = jq('<form>', {
 					'action': 'http://localhost:8080/',
 					'method': 'GET'
@@ -51,8 +86,14 @@ $def with (key, content, price_stat, table_content)
 					'value': jq("#input").val(),
 					'type': 'hidden'
 				}));
+				
+				
+				
+				
 				jq(document.body).append(newForm);
 				newForm.submit();
+				
+
 			});
 			
 		});
@@ -60,43 +101,46 @@ $def with (key, content, price_stat, table_content)
 	
 	
 	<script>
-		var ctx = document.getElementById("myChart");
-		var myChart = new Chart(ctx, {
-			type: 'bar',
-			data: {
-				labels: $:table_content['labels'],
-				datasets: [{
-				    label: '# of Votes',
-				    data: $:table_content['data'],
-				    backgroundColor: [
-				        'rgba(255, 99, 132, 0.2)',
-				        'rgba(54, 162, 235, 0.2)',
-				        'rgba(255, 206, 86, 0.2)',
-				        'rgba(75, 192, 192, 0.2)',
-				        'rgba(153, 102, 255, 0.2)',
-				        'rgba(255, 159, 64, 0.2)'
-				    ],
-				    borderColor: [
-				        'rgba(255,99,132,1)',
-				        'rgba(54, 162, 235, 1)',
-				        'rgba(255, 206, 86, 1)',
-				        'rgba(75, 192, 192, 1)',
-				        'rgba(153, 102, 255, 1)',
-				        'rgba(255, 159, 64, 1)'
-				    ],
-				    borderWidth: 1
-				}]
-			},
-			options: {
-				scales: {
-				    yAxes: [{
-				        ticks: {
-				            beginAtZero:true
-				        }
-				    }]
+		$if 'max' in price_stat:
+			var ctx = document.getElementById("myChart");
+			var myChart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels: $:table_content['labels'],
+					datasets: [{
+						label: '# of Votes',
+						data: $:table_content['data'],
+						backgroundColor: [
+						    //'rgba(255, 99, 132, 0.2)',
+						    'rgba(54, 162, 235, 0.2)'
+						    //'rgba(255, 206, 86, 0.2)',
+						    //'rgba(75, 192, 192, 0.2)',
+						    //'rgba(153, 102, 255, 0.2)',
+						    //'rgba(255, 159, 64, 0.2)'
+						],
+						borderColor: [
+						    //'rgba(255,99,132,1)',
+						    'rgba(54, 162, 235, 1)'
+						    //'rgba(255, 206, 86, 1)',
+						    //'rgba(75, 192, 192, 1)',
+						    //'rgba(153, 102, 255, 1)',
+						    //'rgba(255, 159, 64, 1)'
+						],
+						borderWidth: 1
+					}]
+				},
+				options: {
+					scales: {
+						yAxes: [{
+						    ticks: {
+						        beginAtZero:true
+						    }
+						}]
+					}
 				}
-			}
-		});
+			});
+		$else:
+			alert("No results!")
 	</script>
 </body>
 
