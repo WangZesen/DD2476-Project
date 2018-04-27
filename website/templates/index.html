@@ -1,10 +1,11 @@
-$def with (key, content, price_stat, table_content)
+$def with (key, products, price_stat, table_content)
 
 <!DOCTYPE html>
 <head>
-	<title>Search Engine Project</title>
+	<title>Craigslist Price Recommendations</title>
 	<link rel="stylesheet" type="text/css" href="static/index_style.css">
 	<link rel="stylesheet" type="text/css" href="static/bootstrap.css">
+
 	<link rel="stylesheet" type="text/css" href="static/nouislider.css">	
 	<script src="static/jquery-3.3.1.min.js"></script>
 	<script src="static/Chart.js"></script>
@@ -15,14 +16,13 @@ $def with (key, content, price_stat, table_content)
 
 <body>
 	<div style="margin:auto; width:100vh">
-		<h1 style="text-align:center">Search Engine</h1>
+		<h1 style="text-align:center">Craigslist Price Recommendations</h1>
 	</div>
 	<br>
 
-	<div style="margin:auto; height:10vh; width:30vh">
-		<input placeholder="Start Searching" type="text" id="input" class="form-control" value="$key"></input>
+	<div style="margin:auto; height:10vh; width:60vh">
+		<input placeholder="Start Searching" type="text" id="input" class="form-control" value="$key" style="text-align:center;font-size:25px"></input>
 	</div>
-	<br>
 
 	<div style="margin:auto;width:15vh">
 		<button  style="width:15vh" id="search" class="btn btn-primary">Search!</button>
@@ -31,50 +31,138 @@ $def with (key, content, price_stat, table_content)
 	
 	
 	
-	$if 'max' in price_stat:
-		<ul>
-			<li>Max: $price_stat['max']</li>
-			<li>Min: $price_stat['min']</li>
-			<li>Average: $price_stat['average']</li>
-		</ul>
-	$else:
-		<p>Nothing Found</p>
-		$pass
 
-	<div id="slider" style="margin:auto;width:50vh"></div>
+	<br>
+	<div class="card" style="margin:auto; width:130vh">
+	  <div class="card-header">
+	  	<h5 class="card-title">Search Statistics</h5>
+	  </div>
+	  <div class="card-body">
+		<div class="container">
+			$if 'max' in price_stat:
+				<table class="table">
+					<thead>
+						<tr>
+						<th># Total Results</th>
+						<th>Min Price</th>
+						<th>Max Price</th>
+						<th>Average Price</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td> $price_stat['n'] </td>
+							<td> $price_stat['min'] </td>
+							<td> $price_stat['max'] </td>
+							<td> $price_stat['average'] </td>
+						</tr>
+					</tbody>
+				</table>
+			$else:
+				<h5 class="card-title" style="text-align:center">Nothing Found</h5>
+				$pass
+		</div>
+	  </div>
+	</div>
 	
-	$if 'max' in price_stat:
-		<script>
-			var slider = document.getElementById('slider');
+	<br>
+	<div class="card" style="margin:auto; width:130vh">
+		<div class="card-header">
+			<h5 class="card-title">Make Your Search Precise</h5>
+		</div>
+		<div class="card-body">
+		
+			<h4 class="card-title">Select Price Interval</h4> <br>
+			<div id="slider" style="margin:auto;width:50vh"></div> <br>
+		
+			<h4 class="card-title">Upload Picture</h4> <br>
+			<input id="input-b1" name="input-b1" type="file" class="file">
+		</div>
+	</div>
 
-			noUiSlider.create(slider, {
-				start: [ $:price_stat['min'] , $:price_stat['max'] ],
-				connect: true,
-				tooltips: [wNumb({decimals:0}), wNumb({decimals:0})],
-				range: {
-					"min": $:price_stat['min'] ,
-					"max": $:price_stat['max']
-				},
-				step: 1.0
-			});
-		
-		</script>
-	$else:
-		$pass
-		
-	<div class="chart-container" style="margin:auto; position:relative; height:80vh; width:80vw">
+
+	<div class="chart-container" style="margin:auto; position:relative; height:75vh; width:130vh">
 		<canvas id="myChart"></canvas>
 	</div>
 	
-	$:content
+	$products
+	<br>
 	
-	
+	$if "n" in price_stat:
+		<div class="container-fluid" style="margin:auto;width:160vh">
+			<div class="row">
+				<div class="col-md">
+					<div class="card" style="margin:auto;">
+						<div class="card-header">
+
+							<h5 class="card-title" style="text-align:left;position:absolute">
+								<a href="$products[0]['url']">
+									$products[0]["title"]
+								</a>
+							</h5>
+							<h5 class="card-title" style="text-align:right;">$products[0]["price"] SEK</h5>
+
+
+						</div>
+						<div class="card-body">
+		
+							<h4 class="card-title">Description</h4> <br>
+
+							<img src="$products[0]['img_url']" style="margin:auto;height:20vh;width:auto">
+						</div>
+					</div>
+				</div>
+				<div class="col-md">
+					<div class="card" style="margin:auto;">
+						<div class="card-header">
+							<h5 class="card-title">Product 2</h5>
+						</div>
+						<div class="card-body">
+		
+							<h4 class="card-title">Description</h4> <br>
+
+		
+							<h4 class="card-title">image</h4> <br>
+						
+						</div>
+					</div>
+				</div>
+				<div class="col-md">
+					<div class="card" style="margin:auto;">
+						<div class="card-header">
+							<h5 class="card-title">Product 2</h5>
+						</div>
+						<div class="card-body">
+							<h4 class="card-title">Description</h4> <br>
+							<h4 class="card-title">image</h4> <br>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	$else:
+		$pass
 	
 	<script>
 		var jq = jQuery.noConflict();
 		jq(document).ready(function(){
-
 			
+			$if 'max' in price_stat:
+				var slider = document.getElementById('slider');
+
+				noUiSlider.create(slider, {
+					start: [ $:price_stat['min'] , $:price_stat['max'] ],
+					connect: true,
+					tooltips: [wNumb({decimals:0}), wNumb({decimals:0})],
+					range: {
+						"min": $:price_stat['min'] - 1 ,
+						"max": $:price_stat['max']
+					},
+					step: 1.0
+				});
+			$else:
+				$pass
+				
 			jq("#search").click(function() {
 				
 				
@@ -88,6 +176,16 @@ $def with (key, content, price_stat, table_content)
 				}));
 				
 				
+				var search_text = "$:key";
+
+
+				if ((search_text == jq("#input").val()) && (search_text != "")) {
+					newForm.append(jq('<input>', {
+						'name': 'price',
+						'value': slider.noUiSlider.get(),
+						'type': 'hidden'
+					}));
+				}
 				
 				
 				jq(document.body).append(newForm);
@@ -108,7 +206,7 @@ $def with (key, content, price_stat, table_content)
 				data: {
 					labels: $:table_content['labels'],
 					datasets: [{
-						label: '# of Votes',
+						label: '# of Products',
 						data: $:table_content['data'],
 						backgroundColor: [
 						    //'rgba(255, 99, 132, 0.2)',
