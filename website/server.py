@@ -9,7 +9,7 @@ class hello:
 	def GET(self, data):
 		search_text = web.input(search_text = "").search_text
 		render = web.template.render("templates")
-		content = ""		
+		content = []		
 		price_stat = {}
 		table_content = {}
 		if search_text != "":
@@ -59,16 +59,17 @@ class hello:
 			
 			if n_result > 0:
 				# Create List for Products
-				content = ""
+				content = []
 				for i in range(n_result):
-					content += "<li> Title = " + metadata["hits"]["hits"][i]["_source"]["title"] 
-					content += ", Price = " + str(metadata["hits"]["hits"][i]["_source"]["price"]) 
-					content += '    <a href="{}">'.format(metadata["hits"]["hits"][i]["_source"]["url"]) 
-					content += "Product Link</a><br>"
+					cur_prod = {}
+					cur_prod["title"] = metadata["hits"]["hits"][i]["_source"]["title"]
+					cur_prod["price"] = metadata["hits"]["hits"][i]["_source"]["price"]
+					cur_prod["url"] = metadata["hits"]["hits"][i]["_source"]["url"]
+					cur_prod["img_url"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
 					if len(metadata["hits"]["hits"][i]["_source"]["imgs"]) > 0:
-						content += '<img src="{}">'.format(metadata["hits"]["hits"][i]["_source"]["imgs"][0]["url"])
-					content += "</li>"
-				content = '<ol>' + content + '</ol>'
+						cur_prod["img_url"] = metadata["hits"]["hits"][i]["_source"]["imgs"][0]["url"]
+					content.append(cur_prod)
+				
 			
 				# Price Statistics
 				table_content = {
@@ -80,7 +81,7 @@ class hello:
 				min_price = 1e10
 				valid_count = 0.
 				price_sum = 0.
-				n_interval = 10.
+				n_interval = 8.
 			
 				for i in range(len(metadata["hits"]["hits"])):
 					if metadata["hits"]["hits"][i]["_source"]["price"] != -1:
