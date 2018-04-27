@@ -3,16 +3,26 @@ $def with (key, content, price_stat, table_content)
 <!DOCTYPE html>
 <head>
 	<title>Search Engine Project</title>
-	<link rel="stylesheet" type="text/css" href="static/index_style.css">
+	<link rel="stylesheet" type="text/css" href="static/index_style1.css">
+	<link rel="stylesheet" type="text/css" href="static/bootstrap.css">
 	<script src="static/jquery-3.3.1.min.js"></script>
 	<script src="static/Chart.js"></script>
 </head>
 
 <body>
-	<h1>Search Engine</h1>
-	Search: <input type="text" id="input" value="$key"></input>
+	<div style="margin:auto; width:100vh">
+		<h1 style="text-align:center">Search Engine</h1>
+	</div>
+	<br>
 
-	<button id="search">Search!</button>
+	<div style="margin:auto; height:10vh; width:30vh">
+		<input placeholder="Start Searching" type="text" id="input" class="form-control" value="$key"></input>
+	</div>
+	<br>
+
+	<div style="margin:auto;width:15vh">
+		<button  style="width:15vh" id="search" class="btn btn-primary">Search!</button>
+	</div>
 	<br>
 	
 	$if 'max' in price_stat:
