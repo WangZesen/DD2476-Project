@@ -1,4 +1,4 @@
-$def with (key, products, price_stat, table_content)
+$def with (key, products, stat, table_content, spell_check, sort_rule)
 
 <!DOCTYPE html>
 <head>
@@ -8,6 +8,7 @@ $def with (key, products, price_stat, table_content)
 
 	<link rel="stylesheet" type="text/css" href="static/nouislider.css">	
 	<script src="static/jquery-3.3.1.min.js"></script>
+	<script src="static/jquery.visible.js"></script>
 	<script src="static/Chart.js"></script>
 	<script src="static/bootstrap.js"></script>
 	<script src="static/nouislider.js"></script>
@@ -24,13 +25,11 @@ $def with (key, products, price_stat, table_content)
 		<input placeholder="Start Searching" type="text" id="input" class="form-control" value="$key" style="text-align:center;font-size:25px"></input>
 	</div>
 
-	<div style="margin:auto;width:15vh">
-		<button  style="width:15vh" id="search" class="btn btn-primary">Search!</button>
+	<div style="margin:auto;width:20vh">
+		<button style="width:20vh" id="search" class="btn btn-primary">Search!</button>
 	</div>
 	<br>
-	
-	
-	
+
 
 	<br>
 	<div class="card" style="margin:auto; width:130vh">
@@ -39,22 +38,24 @@ $def with (key, products, price_stat, table_content)
 	  </div>
 	  <div class="card-body">
 		<div class="container">
-			$if 'max' in price_stat:
+			$if 'max' in stat:
 				<table class="table">
 					<thead>
 						<tr>
 						<th># Total Results</th>
-						<th>Min Price</th>
-						<th>Max Price</th>
-						<th>Average Price</th>
+						<th>Min Price (SEK)</th>
+						<th>Max Price (SEK)</th>
+						<th>Average Price (SEK)</th>
+						<th>Time Taken (s)</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td> $price_stat['n'] </td>
-							<td> $price_stat['min'] </td>
-							<td> $price_stat['max'] </td>
-							<td> $price_stat['average'] </td>
+							<td> $stat['n'] </td>
+							<td> $stat['min'] </td>
+							<td> $stat['max'] </td>
+							<td> $stat['average'] </td>
+							<td> $stat['time'] </td>
 						</tr>
 					</tbody>
 				</table>
@@ -72,11 +73,77 @@ $def with (key, products, price_stat, table_content)
 		</div>
 		<div class="card-body">
 		
-			<h4 class="card-title">Select Price Interval</h4> <br>
-			<div id="slider" style="margin:auto;width:50vh"></div> <br>
-		
+			$#
+			$# Spell Check
+			$#
+			
+			$if len(spell_check) > 0:
+				<h4 class="card-title">Spell Check</h4> <br>
+				$for i in range(len(spell_check)):
+					<button type="button" class="btn btn-default spell-check" style="margin-left:2vh"><h6>$:spell_check[i]</h6></button>
+				<br><hr>
+			$else:
+				$pass
+			
+			$#
+			$# Facets
+			$#
+			
+			<h4 class="card-title">Facets
+				<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="facets">Clear</button> 				
+			</h4> 
+			
+			<div style="margin-left:5vh">
+				<h5 class="card-title">Condition
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">New</button>
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Like New</button>
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Excellent</button>
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Good</button>
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Fair</button>
+					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Salvage</button>
+				</h5>
+			</div>
+			<hr>
+			
+			$#
+			$# Sort Method
+			$#
+			
+			$if ('n' in stat) and (stat['n'] > 1):
+				<h4 class="card-title">Sort by
+					<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="sorting">Clear</button> 
+				</h4> 
+				<h5 class="card-title" style="margin-left:5vh">Rule
+					<button type="button" class="btn btn-default sorting" style="margin-left:2vh" content="0">Relevance</button>
+					<button type="button" class="btn btn-default sorting" style="margin-left:2vh" content="1">Price (Lowest First)</button>
+					<button type="button" class="btn btn-default sorting" style="margin-left:2vh" content="2">Price (Highest First)</button>
+					<button type="button" class="btn btn-default sorting" style="margin-left:2vh" content="3">Date (Latest First)</button>
+					<button type="button" class="btn btn-default sorting" style="margin-left:2vh" content="4">Date (Earliest First)</button>
+				</h5>
+				<hr>
+			$else:
+				$pass
+				
+			$#
+			$# Select Price Interval
+			$#
+			
+			$if 'max' in stat:
+				<h4 class="card-title">Price Interval 
+					<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="price">Clear</button> 
+				</h4>
+				<div id="slider" style="margin:auto;width:50vh"></div> <hr>
+			$else:
+				$pass
+				
+			$#
+			$# Upload Picture
+			$#
+			
 			<h4 class="card-title">Upload Picture</h4> <br>
 			<input id="input-b1" name="input-b1" type="file" class="file">
+			
+			
 		</div>
 	</div>
 
@@ -85,121 +152,214 @@ $def with (key, products, price_stat, table_content)
 		<canvas id="myChart"></canvas>
 	</div>
 	
-	$products
 	<br>
 	
-	$if "n" in price_stat:
-		<div class="container-fluid" style="margin:auto;width:160vh">
-			<div class="row">
-				<div class="col-md">
-					<div class="card" style="margin:auto;">
-						<div class="card-header">
-
-							<h5 class="card-title" style="text-align:left;position:absolute">
-								<a href="$products[0]['url']">
-									$products[0]["title"]
-								</a>
-							</h5>
-							<h5 class="card-title" style="text-align:right;">$products[0]["price"] SEK</h5>
-
-
-						</div>
-						<div class="card-body">
-		
-							<h4 class="card-title">Description</h4> <br>
-
-							<img src="$products[0]['img_url']" style="margin:auto;height:20vh;width:auto">
+	$if "n" in stat:
+		<div id="result" class="container-fluid" style="margin:auto;width:160vh">
+		$for i in range(len(products)):
+			$if i % 3 == 0:
+				<div class="row">
+			$else:
+				$pass
+			<div class="col-md" style="width:50vh;height:40vh">
+				<div class="card" style="margin:auto">
+					<div class="card-header">
+						<h4 class="card-title" style="text-align:left;position:absolute">
+							<a href="$products[i]['url']" style="color:black">
+								$products[i]["title"]
+							</a>
+						</h4>
+						<h4 class="card-title" style="text-align:right;">
+							$products[i]["price"] SEK
+						</h4>
+					</div>
+					<div class="card-body">
+						<h5 class="card-title">$:products[i]["description"]</h5>
+						<div style="height:20vh">
+							<img src="$products[i]['img_url']" style="height:100%;width:auto">
 						</div>
 					</div>
 				</div>
-				<div class="col-md">
-					<div class="card" style="margin:auto;">
-						<div class="card-header">
-							<h5 class="card-title">Product 2</h5>
-						</div>
-						<div class="card-body">
-		
-							<h4 class="card-title">Description</h4> <br>
-
-		
-							<h4 class="card-title">image</h4> <br>
-						
-						</div>
-					</div>
-				</div>
-				<div class="col-md">
-					<div class="card" style="margin:auto;">
-						<div class="card-header">
-							<h5 class="card-title">Product 2</h5>
-						</div>
-						<div class="card-body">
-							<h4 class="card-title">Description</h4> <br>
-							<h4 class="card-title">image</h4> <br>
-						</div>
-					</div>
-				</div>
+			</div>	
+			$if i % 3 == 2:
+				</div><br>
+			$else:
+				$pass
+		$if len(products) % 3 != 0:
 			</div>
-		</div>
-	$else:
-		$pass
+		$else:
+			$pass
+		</div>	
+
+	
+	
+	
+	
+
 	
 	<script>
 		var jq = jQuery.noConflict();
 		jq(document).ready(function(){
-			
-			$if 'max' in price_stat:
+			$if 'max' in stat:
 				var slider = document.getElementById('slider');
-
 				noUiSlider.create(slider, {
-					start: [ $:price_stat['min'] , $:price_stat['max'] ],
+					start: [ $:stat['min'] , $:stat['max'] ],
 					connect: true,
 					tooltips: [wNumb({decimals:0}), wNumb({decimals:0})],
 					range: {
-						"min": $:price_stat['min'] - 1 ,
-						"max": $:price_stat['max']
+						"min": $:stat['min'] - 1 ,
+						"max": $:stat['max']
 					},
 					step: 1.0
 				});
 			$else:
+				var slider = null;
 				$pass
+			
+			
+			// Sort Method
+			var i, n_sort = jq(".sorting").length;
+			for (i = 0; i < n_sort; i++) {
+				if (i == $sort_rule) {
+					jq(".sorting:eq(" + i.toString() + ")").toggleClass("btn-default");
+					jq(".sorting:eq(" + i.toString() + ")").toggleClass("btn-info");
+				}
+			}
+			
+			
+			function check_visible() {
+				alert(jq("#result").visible(true));
+			}
+			
+			jq("#test-btn").click(function() {
+				alert(jq("#result").visible(true));
+			});
+			
+			function gather_info() {
+			
+				var info = {
+					"sorting": 0
+				};
+				var i;
+
+				// Key Word
 				
+				info["search_text"] = jq("#input").val();
+				
+				// Sorting Rule
+				
+				for (i = 0; i < jq(".sorting").length; i++) {
+					if (jq(".sorting:eq(" + i.toString() + ")").attr("class").indexOf("btn-info") >= 0) {
+						info["sorting"] = i;
+					}
+				}
+				
+				// Price Interval
+				
+				if ( typeof slider === 'undefined' || slider === null ) {
+
+				} else {
+					info["price"] = slider.noUiSlider.get();
+				}
+				
+				return info;
+			}
+			
+
+			
+			// Search Button
+			
 			jq("#search").click(function() {
+			
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
 				
-				
+				for (var key in info) {
+					newForm.append(jq('<input>', {
+						'name': key,
+						'value': info[key],
+						'type': 'hidden'
+					}));
+				}
+				jq(document.body).append(newForm);
+				newForm.submit();
+			});
+			
+			// Select Spell Check
+			
+			jq(".spell-check").click(function() {
 				var newForm = jq('<form>', {
 					'action': 'http://localhost:8080/',
 					'method': 'GET'
 				}).append(jq('<input>', {
 					'name': 'search_text',
-					'value': jq("#input").val(),
+					'value': this.textContent,
 					'type': 'hidden'
 				}));
+				jq(document.body).append(newForm);
+				newForm.submit();
+			});
+			
+			// Select Sort Rule
+			
+			jq(".sorting").click(function() {
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
 				
+				info["sorting"] = parseInt(jq(this).attr("content"));
 				
-				var search_text = "$:key";
-
-
-				if ((search_text == jq("#input").val()) && (search_text != "")) {
+				for (var key in info) {
 					newForm.append(jq('<input>', {
-						'name': 'price',
-						'value': slider.noUiSlider.get(),
+						'name': key,
+						'value': info[key],
 						'type': 'hidden'
 					}));
 				}
 				
-				
 				jq(document.body).append(newForm);
 				newForm.submit();
-				
-
 			});
 			
+			// Clear Button
+			
+			jq(".clear-btn").click(function() {
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
+				
+				for (var key in info) {
+					if (key != jq(this).attr("content")) {
+						newForm.append(jq('<input>', {
+							'name': key,
+							'value': info[key],
+							'type': 'hidden'
+						}));
+					}
+				}
+				jq(document.body).append(newForm);
+				newForm.submit();
+			});
+			
+			// Collet User Data
+			
+			// TODO
+			// TODO
+			// TODO
+			// TODO
 		});
 	</script>
 	
 	
 	<script>
-		$if 'max' in price_stat:
+		$if 'max' in stat:
 			var ctx = document.getElementById("myChart");
 			var myChart = new Chart(ctx, {
 				type: 'line',
