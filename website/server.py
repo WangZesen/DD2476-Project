@@ -1,4 +1,4 @@
-import web, json, requests, math
+import web, json, requests, math, timeit
 		
 urls = (
 	'/(.*)', 'hello'
@@ -12,7 +12,33 @@ class hello:
 		content = []		
 		price_stat = {}
 		table_content = {}
+		spell_check = []
+		sort_rule = int(web.input(sorting = "0").sorting)
+		start_time = timeit.default_timer()
+		
 		if search_text != "":
+		
+			# Spell Check
+			url = "http://localhost:9200/products/_search"
+			query = {
+				"suggest": {
+					"my-suggest": {
+						"text": search_text,
+						"term":	{
+							"field": "title"
+						}
+					}
+				}
+			}
+			headers = {
+				"Content-Type": "application/json"
+			}
+			r = requests.request("POST", url, headers = headers, data = json.dumps(query))
+			metadata = json.loads(r.text)
+			
+			for i in range(len(metadata["suggest"]["my-suggest"][0]["options"])):
+				spell_check.append(metadata["suggest"]["my-suggest"][0]["options"][i]["text"])
+			
 			url = "http://localhost:9200/products/product/_search"
 			query = {
 				"query": {
@@ -21,7 +47,7 @@ class hello:
 							"fuzzy": {
 								"title": {
 									"value": search_text,
-									"fuzziness": "AUTO"
+									"fuzziness": 0
 								}
 							}
 						},
@@ -38,6 +64,32 @@ class hello:
 				"size": 10000
 			}
 			
+			print (sort_rule)
+			if sort_rule == 1:
+				query["sort"] = [
+					{
+						"price": {"order": "asc"}
+					}
+				]
+			elif sort_rule == 2:
+				query["sort"] = [
+					{
+						"price": {"order": "desc"}
+					}
+				]
+			elif sort_rule == 3:
+				query["sort"] = [
+					{
+						"date": {"order": "desc"}
+					}
+				]
+			elif sort_rule == 4:
+				query["sort"] = [
+					{
+						"date": {"order": "asc"}
+					}
+				]
+			
 			if web.input(price = "").price != "":
 				lowest = float(web.input(price = "").price.split(",")[0])
 				highest = float(web.input(price = "").price.split(",")[1])
@@ -51,9 +103,8 @@ class hello:
 			}
 
 			r = requests.request("POST", url, headers = headers, data = json.dumps(query))
-			print (r.text)
 			metadata = json.loads(r.text)
-			n_result = min(len(metadata["hits"]["hits"]), 20)
+			n_result = min(len(metadata["hits"]["hits"]), 21)
 			
 
 			
@@ -62,6 +113,7 @@ class hello:
 				content = []
 				for i in range(n_result):
 					cur_prod = {}
+					cur_prod["description"] = metadata["hits"]["hits"][i]["_source"]["description"]
 					cur_prod["title"] = metadata["hits"]["hits"][i]["_source"]["title"]
 					cur_prod["price"] = metadata["hits"]["hits"][i]["_source"]["price"]
 					cur_prod["url"] = metadata["hits"]["hits"][i]["_source"]["url"]
@@ -118,8 +170,8 @@ class hello:
 				
 			
 		
-		
-		return render.index(search_text, content, price_stat, table_content)
+		price_stat["time"] = timeit.default_timer() - start_time
+		return render.index(search_text, content, price_stat, table_content, spell_check, sort_rule)
 
 if __name__ == "__main__":
 	app.run()
