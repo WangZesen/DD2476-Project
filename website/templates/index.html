@@ -15,11 +15,38 @@ $# selected_facets
 	<script src="static/bootstrap.js"></script>
 	<script src="static/nouislider.js"></script>
 	<script src="static/wNumb.js"></script>
+	
+	<style>
+	#myBtn {
+	  position: fixed;
+	  top: 0px;
+	  right: 50px;
+	  z-index: 99;
+	  font-size: 18px;
+	  border: none;
+	  outline: none;
+	  background-color: orange;
+	  color: black;
+	  cursor: pointer;
+	  padding: 5px;
+	  padding-left: 25px;
+	  padding-right: 25px;
+	  border-radius: 4px;
+	}
+
+	#myBtn:hover {
+	  background-color: #555;
+	}
+	</style>
 </head>
 
 <body>
+	<div class="alert alert-warning" role="alert">
+	Attention: We will collect user data if you are going to use this site.
+	</div>
+	
 	<div style="margin:auto; width:100vh">
-		<h1 style="text-align:center">Craigslist Price Recommendations lalala</h1>
+		<h1 style="text-align:center">Craigslist Price Recommendations</h1>
 	</div>
 	<br>
 
@@ -31,6 +58,60 @@ $# selected_facets
 		<button style="width:20vh" id="search" class="btn btn-primary">Search!</button>
 	</div>
 	<br>
+	
+	
+	<button id="myBtn" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">I'm Lucky</button>
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+		    <div class="modal-content">
+		        <div class="modal-header">
+		            <h4 class="modal-title" id="myModalLabel">Recommand products</h4>
+		            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		        </div>
+		        <div class="modal-body">
+		        
+		        $if len(recom_content) > 0:
+					<div id="result" class="container-fluid" style="margin:auto;width:155vh">
+					$for i in range(len(recom_content)):
+						$if i % 3 == 0:
+							<div class="row">
+						$else:
+							$pass
+						<div class="col-md" style="width:40vh;height:40vh" pid="$recom_content[i]['pid']">
+							<div class="card" style="margin:auto">
+								<div class="card-header">
+									<h4 class="card-title" style="text-align:left;position:absolute">
+										<a href="$recom_content[i]['url']" style="color:black">
+											$recom_content[i]["title"]
+										</a>
+									</h4>
+									<h4 class="card-title" style="text-align:right;">
+										$recom_content[i]["price"] $$
+									</h4>
+								</div>
+								<div class="card-body">
+									<h5 class="card-title">$:recom_content[i]["description"]</h5>
+									<div style="height:20vh">
+										<img src="$recom_content[i]['img_url']" style="height:100%;width:auto">
+									</div>
+								</div>
+							</div>
+						</div>	
+						$if i % 3 == 2:
+							</div><br>
+						$else:
+							$pass
+					$if len(recom_content) % 3 != 0:
+						</div>
+					$else:
+						$pass
+					</div>	
+		        
+		        
+		        </div>
+		    </div><!-- /.modal-content -->
+		</div><!-- /.modal -->
+	</div>
 
 
 	<br>
@@ -39,6 +120,9 @@ $# selected_facets
 	  	<h5 class="card-title">Search Statistics</h5>
 	  </div>
 	  <div class="card-body">
+	  	<div class="chart-container" style="margin:auto; position:relative; height:50vh; width:100vh">
+			<canvas id="myChart"></canvas>
+		</div>
 		<div class="container">
 			$if 'max' in stat:
 				<table class="table">
@@ -98,10 +182,12 @@ $# selected_facets
 					<img src="static/figs/x.svg" class="img-fluid" alt="Responsive image">
 				</button>
 				$pass
-			<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="selected_facets">Clear</button> 				
+			<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="selected_facets">Clear</button> 	
+			<button type="button" class="btn btn-primary hide-btn" style="height:4vh;margin-left:2vh" content="selected_facets">Hide/Show</button>
 			</h4> 
+			
 			$for item in facets:
-				<div style="margin-left:5vh">
+				<div style="margin-left:5vh" class="facets-option">
 								
 				$if len(item[1]["value"]) > 1:
 					<h5 class="card-title">$:item[0]</h5>
@@ -112,7 +198,7 @@ $# selected_facets
 					$pass
 
 				</div>
-				<br>
+				<br class="facets-option">
 				$pass
 			<hr>
 				
@@ -163,10 +249,6 @@ $# selected_facets
 	</div>
 
 
-	<div class="chart-container" style="margin:auto; position:relative; height:75vh; width:130vh">
-		<canvas id="myChart"></canvas>
-	</div>
-	
 	<br>
 	
 	$if "n" in stat:
@@ -205,16 +287,23 @@ $# selected_facets
 		$else:
 			$pass
 		</div>	
-
+	
+	<!--
+	<div style="margin:auto; width:100vh">
+		<h1 style="text-align:center">Recommend Result</h1>
+	</div>
+	-->
 	
 	
 	
 	
-
+	
 	
 	<script>
 		var jq = jQuery.noConflict();
 		jq(document).ready(function(){
+		
+
 			$if 'max' in stat:
 				var slider = document.getElementById('slider');
 				noUiSlider.create(slider, {
@@ -456,6 +545,11 @@ $# selected_facets
 			});
 			
 			
+			jq(".hide-btn").click(function(){
+				jq(".facets-option").toggle();
+			});
+			
+			jq(".facets-option").toggle();
 		});
 	</script>
 	
@@ -517,4 +611,3 @@ $# selected_facets
 		});
 	</script>
 </body>
-
