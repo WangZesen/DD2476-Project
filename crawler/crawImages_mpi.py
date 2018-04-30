@@ -1,5 +1,5 @@
 # /usr/bin/mpiexec -np 32 python crawImages_mpi.py
-# /Users/zhweng/anaconda/bin/mpiexec -np 32 python crawImages_mpi.py
+# /Users/zhweng/anaconda/bin/mpiexec -np 35 python crawImages_mpi.py
 import json
 import wget
 import os
@@ -12,19 +12,21 @@ size = comm.Get_size()
 
 recv_data = None
 if rank == 0:
-    send_data = range(32)
+    send_data = range(35)
     print("process {} scatter data {} to other processes".format(rank, send_data))
 else:
     send_data = None
 
-i = comm.scatter(send_data, root=0) + 1 # mac os should add 1
+i = comm.scatter(send_data, root=0) # the first dir is not the file in mac system
 
-print("process {} start download {} class images ...".format(rank, recv_data))
+# i=32
 
-rawcrawDir = './data/'
+print("process {} start download {} class images ...".format(rank, i))
+
+rawcrawDir = './newdata/'
 outputGuide = os.listdir(rawcrawDir)
 imgRootDir = './images/'
-recordCrawImg = 'recordCrawImg.json'
+# recordCrawImg = 'recordCrawImg.json'
 
 missingRequest = 0
 totalRequest = 0
@@ -50,7 +52,7 @@ for j in range(len(data)):
         filename = wget.download(data[j]['imgs'][0]['url'], out=subImgDir)
         data[j]['imgs'] = filename
     except:
-        print('do not found image')
+        print('do not found image from imgurl: {}'.format(data[j]['imgs'][0]['url']))
         missingRequest = missingRequest + 1
         # set to zero
         data[j]['imgs'] = 0
