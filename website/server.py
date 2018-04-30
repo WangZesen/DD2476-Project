@@ -1,12 +1,43 @@
 import web, json, requests, math, timeit
+import numpy as np
+import torch
+import torch.nn as nn
+import torchvision.models as models
+import torchvision.transforms as transforms
+from torch.autograd import Variable
+from PIL import Image
+import os
+import json
+import operator
+import matplotlib.pyplot as plt
 		
 urls = (
-	'/(.*)', 'hello'
+	'/', 'hello',
+	'/upload', 'image',
 )
 app = web.application(urls, globals())
 
+freq = {"count": 0}
+recordCount = 0
+ip = "localhost"
+
+class image:
+	def GET(self):
+		return "Hello World"
+	def POST(self):
+		data = web.input(file="{}")
+		web.debug(data['file'])
+		f = open("test.jpg", "wb")
+		f.write(data['file'])
+		f.close()
+		pass
+
 class hello:		
-	def GET(self, data):
+	def __init__(self):
+		self.record_count = 0
+	
+	def GET(self):
+		
 		search_text = web.input(search_text = "").search_text
 		render = web.template.render("templates")
 		content = []		
@@ -15,11 +46,17 @@ class hello:
 		spell_check = []
 		sort_rule = int(web.input(sorting = "0").sorting)
 		start_time = timeit.default_timer()
+		selected_facets = json.loads(web.input(selected_facets = "{}").selected_facets)
+
+		#selected_facets = {
+		#	"condition": "new"
+		#}
+		
 		facets = {}
 		if search_text != "":
 		
 			# Spell Check
-			url = "http://localhost:9200/products/_search"
+			url = "http://{}:9200/products/_search".format(ip)
 			query = {
 				"suggest": {
 					"my-suggest": {
@@ -39,16 +76,20 @@ class hello:
 			for i in range(len(metadata["suggest"]["my-suggest"][0]["options"])):
 				spell_check.append(metadata["suggest"]["my-suggest"][0]["options"][i]["text"])
 			
-			url = "http://localhost:9200/products/product/_search"
+			url = "http://{}:9200/products/product/_search".format(ip)
 			query = {
 				"query": {
 					"bool": {
 						"must": {
-							"fuzzy": {
-								"title": {
-									"value": search_text,
-									"fuzziness": 0
-								}
+							#"fuzzy": {
+							#	"title": {
+							#		"value": search_text,
+							#		"fuzziness": 0
+							#	}
+							#}
+							"multi_match": {
+								"fields": ["title^3", "description"],
+								"query": search_text
 							}
 						},
 						"filter": {
@@ -58,13 +99,12 @@ class hello:
 								}
 							}
 						}
-					}
-					
+					}	
 				},
 				"size": 10000
 			}
 			
-			print (sort_rule)
+			
 			if sort_rule == 1:
 				query["sort"] = [
 					{
@@ -104,6 +144,25 @@ class hello:
 
 			r = requests.request("POST", url, headers = headers, data = json.dumps(query))
 			metadata = json.loads(r.text)
+
+			# Filter according to Selected Facets
+			
+			filtered_prod = []
+			for i in range(len(metadata["hits"]["hits"])):
+				qualified = True
+				for facet_key in selected_facets:
+					if (facet_key in metadata["hits"]["hits"][i]["_source"]["facets"]) and (metadata["hits"]["hits"][i]["_source"]["facets"][facet_key].lower() == selected_facets[facet_key].lower()):
+						continue
+					else:
+						qualified = False
+						break
+				if qualified:
+					filtered_prod.append(metadata["hits"]["hits"][i])
+			metadata["hits"]["hits"] = filtered_prod
+
+
+			# Number of Returned Document
+	
 			n_result = min(len(metadata["hits"]["hits"]), 21)
 			
 
@@ -123,13 +182,12 @@ class hello:
 						cur_prod["img_url"] = metadata["hits"]["hits"][i]["_source"]["imgs"][0]["url"]
 					content.append(cur_prod)
 				
-			
 				# Price Statistics
 				table_content = {
 					'labels' : '',
 					'data': ''
 				}
-			
+				
 				max_price = 0.
 				min_price = 1e10
 				valid_count = 0.
@@ -195,13 +253,108 @@ class hello:
 
 					
 					
-				print (sorted(facets.iteritems(), key = lambda (k, v): v["count"], reverse = True))
+				# print (sorted(facets.iteritems(), key = lambda (k, v): v["count"], reverse = True))
 				facets = sorted(facets.iteritems(), key = lambda (k, v): v["count"], reverse = True)
 				
+		
+		
+		global freq
+		if len(freq) > 0:
+			recom_content = []
+			for key in freq:
+				if key != "count":
+					size = int(float(freq[key]["count"]) / float(freq["count"]) * 21)
+					
+					max_count = -1
+					max_term = ""
+					
+					for value in freq[key]["values"]:
+						if freq[key]["values"][value] > max_count:
+							max_count = freq[key]["values"][value]
+							max_term = value
+							
+					query = {
+						"query": {
+							"bool": {
+								"must": {
+									"multi_match": {
+										"fields": ["title^3", "description"],
+										"query": max_term
+									}
+								},
+								"filter": {
+									"range": {
+										"price": {
+											"gt": 0
+										}
+									}
+								}
+							}
+					
+						},
+						"size": size
+					}
+					
+					headers = {
+						"Content-Type": "application/json"
+					}
+					
+					r = requests.request("POST", "http://{}:9200/products/_search".format(ip), headers = headers, data = json.dumps(query))
+					recom_meta = json.loads(r.text)
+					
+					for i in range(min(size, len(recom_meta["hits"]["hits"]))):
+						cur_prod = {}
+						cur_prod["description"] = recom_meta["hits"]["hits"][i]["_source"]["description"]
+						cur_prod["title"] = recom_meta["hits"]["hits"][i]["_source"]["title"]
+						cur_prod["price"] = recom_meta["hits"]["hits"][i]["_source"]["price"]
+						cur_prod["url"] = recom_meta["hits"]["hits"][i]["_source"]["url"]
+						cur_prod["img_url"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
+						cur_prod["pid"] = recom_meta["hits"]["hits"][i]["_source"]["pid"]
+						if len(recom_meta["hits"]["hits"][i]["_source"]["imgs"]) > 0:
+							cur_prod["img_url"] = recom_meta["hits"]["hits"][i]["_source"]["imgs"][0]["url"]
+						recom_content.append(cur_prod)
+					
+			print (len(recom_content))
+			pass
 			
 		
 		price_stat["time"] = timeit.default_timer() - start_time
-		return render.index(search_text, content, price_stat, table_content, spell_check, sort_rule, facets)
-
+		return render.index(search_text, content, price_stat, table_content, spell_check, sort_rule, facets, json.dumps(selected_facets), selected_facets, recom_content)
+		
+	def POST(self):
+		data = web.data()
+		global recordCount
+		global freq
+		#if recordCount % 50 == 0:
+		#	freq = {}
+		recordCount += 1
+		
+		print (recordCount)
+		print (web.data())
+		
+		pid_list = data.split(',')
+		print (pid_list)
+		for i in range(len(pid_list)):
+			if pid_list[i] == "":
+				continue
+			pid = int(pid_list[i])
+			url = "http://{}:9200/products/product/{}".format(ip, pid)
+			r = requests.request("GET", url)
+			rjson = json.loads(r.text)
+			
+			for key in rjson['_source']['title'].split(' '):
+				if not (rjson['_source']['kind'] in freq):
+					freq[rjson['_source']['kind']] = {
+						"count": 0,
+						"values": {}
+					}
+				freq[rjson['_source']['kind']]["values"].update({key.lower() : freq[rjson['_source']['kind']]["values"].get(key.lower(), 0) + 1})
+			freq[rjson['_source']['kind']]["count"] += 1
+			freq["count"] += 1
+		print (freq)
+	
+		pass
+		
+		
 if __name__ == "__main__":
 	app.run()
