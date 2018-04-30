@@ -15,7 +15,7 @@ class hello:
 		spell_check = []
 		sort_rule = int(web.input(sorting = "0").sorting)
 		start_time = timeit.default_timer()
-		
+		facets = {}
 		if search_text != "":
 		
 			# Spell Check
@@ -118,6 +118,7 @@ class hello:
 					cur_prod["price"] = metadata["hits"]["hits"][i]["_source"]["price"]
 					cur_prod["url"] = metadata["hits"]["hits"][i]["_source"]["url"]
 					cur_prod["img_url"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
+					cur_prod["pid"] = metadata["hits"]["hits"][i]["_source"]["pid"]
 					if len(metadata["hits"]["hits"][i]["_source"]["imgs"]) > 0:
 						cur_prod["img_url"] = metadata["hits"]["hits"][i]["_source"]["imgs"][0]["url"]
 					content.append(cur_prod)
@@ -166,12 +167,41 @@ class hello:
 				price_stat["min"] = min_price
 				price_stat["average"] = price_sum / valid_count
 				price_stat["n"] = len(metadata["hits"]["hits"])
-			
+				
+				
+				# Facets
+				
+
+				for i in range(len(metadata["hits"]["hits"])):
+					for facet_key in metadata["hits"]["hits"][i]["_source"]["facets"]:
+						facet_value = metadata["hits"]["hits"][i]["_source"]["facets"][facet_key].lower()
+						if facet_key in facets:
+							if facet_value in facets[facet_key]["value"]:
+								facets[facet_key]["value"][facet_value] += 1
+							else:
+								facets[facet_key]["value"][facet_value] = 1
+							facets[facet_key]["count"] += 1
+						else:
+							facets[facet_key] = {
+								"value": {
+									facet_value: 1
+								},
+								"count": 1
+							}
+							
+							
+				for facet_key in facets:
+					facets[facet_key]["value"] = sorted(facets[facet_key]["value"].iteritems(), key = lambda (k, v): v, reverse = True)
+
+					
+					
+				print (sorted(facets.iteritems(), key = lambda (k, v): v["count"], reverse = True))
+				facets = sorted(facets.iteritems(), key = lambda (k, v): v["count"], reverse = True)
 				
 			
 		
 		price_stat["time"] = timeit.default_timer() - start_time
-		return render.index(search_text, content, price_stat, table_content, spell_check, sort_rule)
+		return render.index(search_text, content, price_stat, table_content, spell_check, sort_rule, facets)
 
 if __name__ == "__main__":
 	app.run()
