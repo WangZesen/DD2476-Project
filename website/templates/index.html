@@ -1,4 +1,4 @@
-$def with (key, products, stat, table_content, spell_check, sort_rule)
+$def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 
 <!DOCTYPE html>
 <head>
@@ -43,9 +43,9 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 					<thead>
 						<tr>
 						<th># Total Results</th>
-						<th>Min Price (SEK)</th>
-						<th>Max Price (SEK)</th>
-						<th>Average Price (SEK)</th>
+						<th>Min Price ($$)</th>
+						<th>Max Price ($$)</th>
+						<th>Average Price ($$)</th>
 						<th>Time Taken (s)</th>
 						</tr>
 					</thead>
@@ -71,7 +71,7 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 		<div class="card-header">
 			<h5 class="card-title">Make Your Search Precise</h5>
 		</div>
-		<div class="card-body">
+		<div class="card-body all-facet">
 		
 			$#
 			$# Spell Check
@@ -92,18 +92,21 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 			<h4 class="card-title">Facets
 				<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="facets">Clear</button> 				
 			</h4> 
-			
-			<div style="margin-left:5vh">
-				<h5 class="card-title">Condition
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">New</button>
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Like New</button>
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Excellent</button>
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Good</button>
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Fair</button>
-					<button type="button" class="btn btn-normal" style="height:4vh;margin-left:2vh">Salvage</button>
-				</h5>
-			</div>
+			$for item in facets:
+				<div style="margin-left:5vh">
+				<h5 class="card-title">$:item[0]
+				</h5>				
+				$if len(item[1]["value"]) > 1:
+					$for value in item[1]["value"]:
+						<button type="button" class="btn btn-normal facet-filter" style="height:4vh;margin-left:2vh;margin-top:2vh" facet-key="$:item[0]" facet-value="$:value[0]">$:value[0]</button>
+						$pass
+					$pass
+
+				</div>
+				<br>
+				$pass
 			<hr>
+				
 			
 			$#
 			$# Sort Method
@@ -170,7 +173,7 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 							</a>
 						</h4>
 						<h4 class="card-title" style="text-align:right;">
-							$products[i]["price"] SEK
+							$products[i]["price"] $$
 						</h4>
 					</div>
 					<div class="card-body">
@@ -262,6 +265,10 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 					info["price"] = slider.noUiSlider.get();
 				}
 				
+				// Facet
+				
+				
+				
 				return info;
 			}
 			
@@ -347,6 +354,15 @@ $def with (key, products, stat, table_content, spell_check, sort_rule)
 				jq(document.body).append(newForm);
 				newForm.submit();
 			});
+			
+			// Facet
+			
+			jq(".facet-filter").click(function() {
+				jq(this).toggleClass("btn-default");
+				jq(this).toggleClass("btn-info");
+			});
+			
+			
 			
 			// Collet User Data
 			
