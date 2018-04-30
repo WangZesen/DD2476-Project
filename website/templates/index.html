@@ -1,4 +1,6 @@
-$def with (key, products, stat, table_content, spell_check, sort_rule, facets)
+$def with (key, products, stat, table_content, spell_check, sort_rule, facets, selected_facets, selected_facets_dict, recom_content)
+
+$# selected_facets
 
 <!DOCTYPE html>
 <head>
@@ -17,7 +19,7 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 
 <body>
 	<div style="margin:auto; width:100vh">
-		<h1 style="text-align:center">Craigslist Price Recommendations</h1>
+		<h1 style="text-align:center">Craigslist Price Recommendations lalala</h1>
 	</div>
 	<br>
 
@@ -90,15 +92,22 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 			$#
 			
 			<h4 class="card-title">Facets
-				<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="facets">Clear</button> 				
+			$for key in selected_facets_dict:
+				<button type="button" class="btn btn-default btn-sm facets-rm" facets-class="$key">
+					$key :  $selected_facets_dict[key]
+					<img src="static/figs/x.svg" class="img-fluid" alt="Responsive image">
+				</button>
+				$pass
+			<button type="button" class="btn btn-success clear-btn" style="height:4vh;margin-left:2vh" content="selected_facets">Clear</button> 				
 			</h4> 
 			$for item in facets:
 				<div style="margin-left:5vh">
-				<h5 class="card-title">$:item[0]
-				</h5>				
+								
 				$if len(item[1]["value"]) > 1:
+					<h5 class="card-title">$:item[0]</h5>
 					$for value in item[1]["value"]:
-						<button type="button" class="btn btn-normal facet-filter" style="height:4vh;margin-left:2vh;margin-top:2vh" facet-key="$:item[0]" facet-value="$:value[0]">$:value[0]</button>
+						<button type="button" class="btn btn-normal facet-filter" style="height:4vh;margin-left:2vh;margin-top:2vh" 
+							facet-key="$:item[0]" facet-value="$:value[0]">$:value[0]</button>
 						$pass
 					$pass
 
@@ -144,8 +153,11 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 			$#
 			
 			<h4 class="card-title">Upload Picture</h4> <br>
-			<input id="input-b1" name="input-b1" type="file" class="file">
-			
+			<form id="uploadForm" enctype="multipart/form-data">
+				<input id="file" type="file" name="file"/>
+				<button id="upload" type="button">Upload</button>
+			</form>
+
 			
 		</div>
 	</div>
@@ -164,7 +176,7 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 				<div class="row">
 			$else:
 				$pass
-			<div class="col-md" style="width:50vh;height:40vh">
+			<div class="col-md products" style="width:50vh;height:40vh" pid="$products[i]['pid']">
 				<div class="card" style="margin:auto">
 					<div class="card-header">
 						<h4 class="card-title" style="text-align:left;position:absolute">
@@ -267,6 +279,15 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 				
 				// Facet
 				
+				info["selected_facets"]='$:selected_facets';
+				
+				// for (i = 0; i < jq(".facet-filter").length; i++) {
+				//	var obj = jq(".facet-filter:eq(" + i.toString() + ")";
+				//	if obj.attr("class").indexOf("btn-info") >= 0) {
+				//		var key = attr("facet-key");
+				//		selected_facets[key] = obj.attr("facet-value");
+				//	}
+				//}
 				
 				
 				return info;
@@ -358,18 +379,83 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 			// Facet
 			
 			jq(".facet-filter").click(function() {
-				jq(this).toggleClass("btn-default");
-				jq(this).toggleClass("btn-info");
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
+				
+				var selected_facets = JSON.parse(info["selected_facets"]);
+				var key = jq(this).attr("facet-key");
+				selected_facets[key] = jq(this).attr("facet-value");
+				
+				info["selected_facets"] = JSON.stringify(selected_facets);
+				
+				for (var key in info) {
+					if (key != jq(this).attr("content")) {
+						newForm.append(jq('<input>', {
+							'name': key,
+							'value': info[key],
+							'type': 'hidden'
+						}));
+					}
+				}
+				jq(document.body).append(newForm);
+				newForm.submit();
 			});
-			
 			
 			
 			// Collet User Data
 			
-			// TODO
-			// TODO
-			// TODO
-			// TODO
+			self.setInterval(function(){
+				var pidList = [];
+				for (var i=0; i<jq(".products").length; i++){
+					var obj_prod = jq(".products:eq("+i.toString()+")");
+					if (obj_prod.visible()){
+						pidList.push(obj_prod.attr("pid"));
+					}
+				}
+				var sendObj = pidList.toString();
+				console.log(sendObj);
+				jq.ajax({
+				  type: "POST",
+				  url: 'http://localhost:8080/',
+				  data: sendObj,
+				  dataType: "text"
+				});
+			}, 5000);
+			
+			
+			
+			
+			jq(".facets-rm").click(function(){
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
+				
+				var selected_facets = JSON.parse(info["selected_facets"]);
+				var key = jq(this).attr("facets-class");
+				delete selected_facets[key];
+				
+				info["selected_facets"] = JSON.stringify(selected_facets);
+				delete info["price"];
+				
+				for (var key in info) {
+					if (key != jq(this).attr("content")) {
+						newForm.append(jq('<input>', {
+							'name': key,
+							'value': info[key],
+							'type': 'hidden'
+						}));
+					}
+				}
+				jq(document.body).append(newForm);
+				newForm.submit();
+			});
+			
+			
 		});
 	</script>
 	
@@ -415,6 +501,20 @@ $def with (key, products, stat, table_content, spell_check, sort_rule, facets)
 			});
 		$else:
 			alert("No results!")
+	</script>
+	
+	<script>
+		jq("#upload").click(function(){
+			jq.ajax({
+				url: '/upload',
+				type: 'POST',
+				cache: false,
+				data: new FormData(jq('#uploadForm')[0]),
+				processData: false,
+				contentType: false
+			}).done(function(res) {
+			}).fail(function(res) {});
+		});
 	</script>
 </body>
 
