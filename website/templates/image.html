@@ -199,7 +199,6 @@ $# selected_facets
 							facet-key="$:item[0]" facet-value="$:value[0]">$:value[0]</button>
 						$pass
 					$pass
-
 				</div>
 				<br class="facets-option">
 				$pass
@@ -241,12 +240,14 @@ $# selected_facets
 			$# Upload Picture
 			$#
 			
-			<h4 class="card-title">Upload Picture</h4> <br>
+			<h4 class="card-title">Upload Picture
+				<button class="clear-img btn btn-success">Clear</button>
+			</h4> <br>
 			<form id="uploadForm" enctype="multipart/form-data">
 				<input id="file" type="file" name="file"/>
 				<button id="upload" type="button">Upload</button>
 			</form>
-
+			
 			
 		</div>
 	</div>
@@ -393,23 +394,16 @@ $# selected_facets
 			
 				var info = gather_info();
 				var newForm = jq('<form>', {
-					'action': 'http://localhost:8080/',
+					'action': 'http://localhost:8080/image',
 					'method': 'GET'
 				});
-				if ("$key" != info["search_text"]) {
+				
+				for (var key in info) {
 					newForm.append(jq('<input>', {
-						'name': 'search_text',
-						'value': info["search_text"],
+						'name': key,
+						'value': info[key],
 						'type': 'hidden'
 					}));
-				} else {
-					for (var key in info) {
-						newForm.append(jq('<input>', {
-							'name': key,
-							'value': info[key],
-							'type': 'hidden'
-						}));
-					}
 				}
 				jq(document.body).append(newForm);
 				newForm.submit();
@@ -419,7 +413,7 @@ $# selected_facets
 			
 			jq(".spell-check").click(function() {
 				var newForm = jq('<form>', {
-					'action': 'http://localhost:8080/',
+					'action': 'http://localhost:8080/image',
 					'method': 'GET'
 				}).append(jq('<input>', {
 					'name': 'search_text',
@@ -458,7 +452,7 @@ $# selected_facets
 			jq(".clear-btn").click(function() {
 				var info = gather_info();
 				var newForm = jq('<form>', {
-					'action': 'http://localhost:8080/',
+					'action': 'http://localhost:8080/image',
 					'method': 'GET'
 				});
 				
@@ -480,7 +474,7 @@ $# selected_facets
 			jq(".facet-filter").click(function() {
 				var info = gather_info();
 				var newForm = jq('<form>', {
-					'action': 'http://localhost:8080/',
+					'action': 'http://localhost:8080/image',
 					'method': 'GET'
 				});
 				
@@ -518,7 +512,7 @@ $# selected_facets
 				console.log(sendObj);
 				jq.ajax({
 				  type: "POST",
-				  url: 'http://localhost:8080/',
+				  url: 'http://localhost:8080/image',
 				  data: sendObj,
 				  dataType: "text"
 				});
@@ -560,7 +554,7 @@ $# selected_facets
 			jq(".facets-rm").click(function(){
 				var info = gather_info();
 				var newForm = jq('<form>', {
-					'action': 'http://localhost:8080/',
+					'action': 'http://localhost:8080/image',
 					'method': 'GET'
 				});
 				
@@ -589,7 +583,27 @@ $# selected_facets
 				jq(".facets-option").toggle();
 			});
 			
+			jq(".clear-img").click(function(){
+				var info = gather_info();
+				var newForm = jq('<form>', {
+					'action': 'http://localhost:8080/',
+					'method': 'GET'
+				});
+				for (var key in info) {
+					if (key != jq(this).attr("content")) {
+						newForm.append(jq('<input>', {
+							'name': key,
+							'value': info[key],
+							'type': 'hidden'
+						}));
+					}
+				}
+				jq(document.body).append(newForm);
+				newForm.submit();
+			});
+			
 			jq(".facets-option").toggle();
+			
 			
 			// Clear all
 			jq("#clear-all").click(function(){
@@ -610,6 +624,7 @@ $# selected_facets
 				jq(document.body).append(newForm);
 				newForm.submit();
 			});
+			
 		});
 	</script>
 	
