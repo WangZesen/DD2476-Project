@@ -7,3 +7,4 @@ Todo:
 - [ ] Collect and use users' data
 - [ ] Facets Search (Redo crawling data)
 - [ ] Upload Image
+https://docs.google.com/document/d/1FVFEwUUrK4tWMrH-VD2Fv6-dFauzqAgCtpiWw4uZR10/edit?usp=sharing
