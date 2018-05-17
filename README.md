@@ -15,6 +15,7 @@
 ## Preparation
 
 ### 0 prerequisites
+* Ubuntu 16.04
 * Python 2.7
 * Pytorch, torchvision
 * Elasticsearch
