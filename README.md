@@ -3,12 +3,14 @@
 **Note:** The folder ***crawler*** is deprecated. All code are move into ***website*** folder.
 
 ## Project Main features:
-- [x] Three basic query forms: Text Search, Image Search, Combination Search
+- [x] Text Search Mode
 - [x] Facets search
 - [x] Search statistic
 - [x] Spell check
 - [x] Price interval, different rank rules, filter rules
-- [x] Recommendation System
+- [x] Image Search Mode
+- [x] Combination Search Mode: Text with Image
+- [x] Smart Recommendation System
 
 ## Preparation
 
@@ -45,4 +47,5 @@ python server.py
 ```
 
 ## Authorship
+
 Ruiyang Ma, Zesen Wang, Zehang Weng, Zitao Zhang
