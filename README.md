@@ -2,6 +2,14 @@
 
 **Note:** The folder ***crawler*** is deprecated. All code are move into ***website*** folder.
 
+## Project Main features:
+- [x] Three basic query forms: Text Search, Image Search, Combination Search
+- [x] Facets search
+- [x] Search statistic
+- [x] Spell check
+- [x] Price interval, different rank rules, filter rules
+- [x] Recommendation System
+
 ## Preparation
 
 ### 0 prerequisites
@@ -34,13 +42,4 @@ elasticsearch # remember add PATH in ~/.bashrc
 ```
 python server.py
 ```
-
-
-## Project Main features:
-- [x] Three basic query forms: Text Search, Image Search, Combination Search
-- [x] Facets search
-- [x] Search statistic
-- [x] Spell check
-- [x] Price interval, different rank rules, filter rules
-- [x] Recommendation System
 
