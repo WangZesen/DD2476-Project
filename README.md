@@ -39,8 +39,10 @@ elasticsearch # remember add PATH in ~/.bashrc
 ```
 
 ## Run the server
-Link: [](localhost:8080/)
+Link: [localhost:8080/](localhost:8080/)
 ```
 python server.py
 ```
 
+## Authorship
+Ruiyang Ma, Zesen Wang, Zehang Weng, Zitao Zhang
