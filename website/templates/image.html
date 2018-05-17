@@ -50,12 +50,14 @@ $# selected_facets
 	</div>
 	<br>
 
-	<div style="margin:auto; height:10vh; width:60vh">
+	<div style="margin:auto; width:60vh">
 		<input placeholder="Start Searching" type="text" id="input" class="form-control" value="$key" style="text-align:center;font-size:25px"></input>
+		<div class="suggest" id="search-suggest" style="width:60vh;margin-top:2vh">
+		</div>
 	</div>
 
 	<div style="margin:auto;width:20vh">
-		<button style="width:20vh" id="search" class="btn btn-primary">Search!</button>
+		<button style="width:20vh; margin-top:4vh" id="search" class="btn btn-primary">Search!</button>
 	</div>
 	<br>
 	
@@ -262,7 +264,7 @@ $# selected_facets
 				<div class="row">
 			$else:
 				$pass
-			<div class="col-md products" style="width:50vh;height:40vh" pid="$products[i]['pid']">
+			<div class="col-md products" style="width:50vh;height:60vh" pid="$products[i]['pid']">
 				<div class="card" style="margin:auto">
 					<div class="card-header">
 						<h4 class="card-title" style="text-align:left;position:absolute">
@@ -625,6 +627,37 @@ $# selected_facets
 				newForm.submit();
 			});
 			
+			jq("#input").on("input propertychange", function() {
+				var search_text = jq("#input").val();
+				var words = search_text.split(" ");
+				var last_word = words[words.length - 1];
+				
+				jq("#search-suggest button").remove();
+				if (last_word.length > 1) {
+				jq.get("http://localhost:8080/spellcheck", {
+						'last_word': last_word
+					}, function(data) {
+						var n_recom = data["suggest"]["my-suggest"][0]["options"].length;
+						var recom_list = [];
+						for (var i = 0; i < n_recom; i++) {
+							recom_list.push(data["suggest"]["my-suggest"][0]["options"][i]["text"]);
+							words[words.length - 1] = data["suggest"]["my-suggest"][0]["options"][i]["text"];
+							jq("#search-suggest").append(jq('<button>', {
+								'class': "btn btn-default",
+								'text': data["suggest"]["my-suggest"][0]["options"][i]["text"],
+								'style': "margin-left:2vh; margin-top:2vh width:10vh",
+								'suggest-phrase': words.join(" ")
+							}));
+						}
+
+						jq("#search-suggest button").click(function() {
+							jq("#input").val(jq(this).attr("suggest-phrase"));
+						});
+						
+					}, "json");
+				}
+				
+			});
 		});
 	</script>
 	
