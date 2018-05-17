@@ -39,6 +39,7 @@ elasticsearch # remember add PATH in ~/.bashrc
 ```
 
 ## Run the server
+Link: [](localhost:8080/)
 ```
 python server.py
 ```
