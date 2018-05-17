@@ -34,7 +34,7 @@ Use crawImages_mpi.py to craw the images and store in local computer. The downlo
 Use extractFeatureFinal.py. The features are stored [here](https://drive.google.com/file/d/1vHil721YsCCNFH7s7qPFcFGmmbvflCpk/view?usp=sharing). Put the file ***totalRes18feat.txt*** under website/
 
 ## Insert Data and run elasticsearch
-Install all the python dependencies using pip:
+
 ```
 python insert.py
 elasticsearch # remember add PATH in ~/.bashrc
