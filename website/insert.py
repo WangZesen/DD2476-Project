@@ -2,6 +2,8 @@ import requests, sys, re, json, os
 
 files = os.listdir("data")
 
+files.sort()
+
 kinds = ["ata", "ppa", "ara", "sna", "pta", "wta", "ava", "baa", "bar", "haa", "bip", "bia", "bpa", "boo",
 		"bka", "bfa", "cta", "ema", "moa", "cla", "cba", "syp", "sya", "ela", "gra", "zip", "fua", "gms",
 		"foa", "hva", "hsa", "jwa", "maa", "mpa", "mca", "msa", "pha", "rva", "sga", "tia", "tla", "taa",

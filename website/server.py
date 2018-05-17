@@ -1,4 +1,4 @@
-import web, json, requests, math, timeit
+import web, json, requests, math, timeit, random
 import numpy as np
 import torch
 import torch.nn as nn
@@ -14,8 +14,12 @@ import matplotlib.pyplot as plt
 urls = (
 	'/', 'hello',
 	'/upload', 'image',
-	'/image', 'upload'
+	'/image', 'upload',
+	'/spellcheck', 'spellcheck'
 )
+
+
+
 app = web.application(urls, globals())
 
 freq = {"count": 0}
@@ -49,6 +53,8 @@ c = open(jsonfileroot, 'r')
 featJSON = json.loads(c.read())
 c.close()
 print("finishing preparation")
+
+
 
 
 
@@ -109,6 +115,28 @@ def getNewRank(queryImgName, featJSON, idList, torchModel):
     idRank = [int(i[0]) for i in dcRank]
 
     return idRank
+
+class spellcheck:
+	def GET(self):
+		last_word = web.input(last_word = "").last_word
+		url = "http://{}:9200/products/_search".format(ip)
+		query = {
+			"suggest": {
+				"my-suggest": {
+					"text": last_word,
+					"term":	{
+						"field": "title"
+					}
+				}
+			}
+		}
+		headers = {
+			"Content-Type": "application/json"
+		}
+		r = requests.request("POST", url, headers = headers, data = json.dumps(query))
+		metadata = json.loads(r.text)
+		return r.text
+
 
 class upload:
 	def GET(self):
@@ -710,7 +738,6 @@ class hello:
 					cur_prod["url"] = metadata["hits"]["hits"][i]["_source"]["url"]
 					cur_prod["img_url"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
 					cur_prod["pid"] = metadata["hits"]["hits"][i]["_source"]["pid"]
-					#if len(metadata["hits"]["hits"][i]["_source"]["imgs"]) > 0:
 					cur_prod["img_url"] = "static" + metadata["hits"]["hits"][i]["_source"]["imgs"][1:]
 					content.append(cur_prod)
 				
@@ -834,16 +861,20 @@ class hello:
 					r = requests.request("POST", "http://{}:9200/products/_search".format(ip), headers = headers, data = json.dumps(query))
 					recom_meta = json.loads(r.text)
 					
+					rand_size = min(size * 3, len(recom_meta["hits"]["hits"]));
+					rand_ind = random.sample(range(rand_size), rand_size); 
+					
+					
 					for i in range(min(size, len(recom_meta["hits"]["hits"]))):
 						cur_prod = {}
-						cur_prod["description"] = recom_meta["hits"]["hits"][i]["_source"]["description"]
-						cur_prod["title"] = recom_meta["hits"]["hits"][i]["_source"]["title"]
-						cur_prod["price"] = recom_meta["hits"]["hits"][i]["_source"]["price"]
-						cur_prod["url"] = recom_meta["hits"]["hits"][i]["_source"]["url"]
+						cur_prod["description"] = recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["description"]
+						cur_prod["title"] = recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["title"]
+						cur_prod["price"] = recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["price"]
+						cur_prod["url"] = recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["url"]
 						cur_prod["img_url"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/300px-No_image_available.svg.png"
-						cur_prod["pid"] = recom_meta["hits"]["hits"][i]["_source"]["pid"]
+						cur_prod["pid"] = recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["pid"]
 						#if len(recom_meta["hits"]["hits"][i]["_source"]["imgs"]) > 0:
-						cur_prod["img_url"] = "static" + recom_meta["hits"]["hits"][i]["_source"]["imgs"][1:]
+						cur_prod["img_url"] = "static" + recom_meta["hits"]["hits"][rand_ind[i]]["_source"]["imgs"][1:]
 						recom_content.append(cur_prod)
 					
 			print (len(recom_content))
@@ -857,8 +888,8 @@ class hello:
 		data = web.data()
 		global recordCount
 		global freq
-		#if recordCount % 50 == 0:
-		#	freq = {}
+		if recordCount % 15 == 0:
+			freq = {"count": 0}
 		recordCount += 1
 		
 		print (recordCount)
