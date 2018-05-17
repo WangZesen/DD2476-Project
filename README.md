@@ -1,9 +1,11 @@
 # DD2476-Project
-DD2476 Project Craigslist price recommendations
+DD2476 Shopping System with Craigslist Product
 
-***[Click this link to download the feat data](https://drive.google.com/file/d/1KvG-e9fN5yH9f0Nbv3CZSvLgT0RUs45e/view?usp=sharing)***
+Main features:
+- [ ] Three basic query forms: Text Search, Image Search, Combination Search
+- [ ] Facets search
+- [ ] Search statistic
+- [ ] Spell check
+- [ ] Price interval, different rank rules, filter rules
+- [ ] Recommendation System
 
-Todo:
-- [ ] Collect and use users' data
-- [ ] Facets Search (Redo crawling data)
-- [ ] Upload Image
