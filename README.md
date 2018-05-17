@@ -1,6 +1,6 @@
 # DD2476-Project: Shopping System with Craigslist Product
 
-**Note:** The folder ***crawler*** is deprecated. All code are move into ***website*** folder.
+**Note:** The folder ***crawler*** is deprecated. All code are move into ***website*** folder. Be carefult to configure the path if you want to rerun the code.
 
 ## Project Main features:
 - [x] Text Search Mode
